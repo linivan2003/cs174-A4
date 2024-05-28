@@ -49,6 +49,8 @@ export class Assignment4 extends Scene {
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+        this.box1_transform = Mat4.identity().times(Mat4.translation(-2,0,0));
+        this.box2_transform = Mat4.identity().times(Mat4.translation(2,0,0));
     }
 
     make_control_panel() {
@@ -71,22 +73,18 @@ export class Assignment4 extends Scene {
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
         let t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-        let model_transform = Mat4.identity();
-
         // TODO:  Draw the required boxes. Also update their stored matrices.
         // You can remove the folloeing line.
-        
-        let box1_transform = model_transform.times(Mat4.translation(-2,0,0));
-
-        let box2_transform = model_transform.times(Mat4.translation(2,0,0));
         if (this.isRotating) {
             // box 1
-            let box1rot = Math.PI/2 * t;
-            box1_transform = box1_transform.times(Mat4.rotation(box1rot,1,0,0));
+            let box1rot = Math.PI/2 * dt;
+            this.box1_transform = this.box1_transform.times(Mat4.rotation(box1rot,1,0,0));
     
+            let box2rot = ((4/3) * (Math.PI)) * dt
+            this.box2_transform = this.box2_transform.times(Mat4.rotation(box2rot,0,1,0));
            }
-         this.shapes.box_1.draw(context, program_state, box1_transform, this.materials.stars);
-         this.shapes.box_2.draw(context, program_state, box2_transform, this.materials.world);
+         this.shapes.box_1.draw(context, program_state, this.box1_transform, this.materials.stars);
+         this.shapes.box_2.draw(context, program_state, this.box2_transform, this.materials.world);
     }
 }
 
