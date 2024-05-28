@@ -23,7 +23,10 @@ export class Assignment4 extends Scene {
             box_2: new Cube(),
             axis: new Axis_Arrows()
         }
+
         console.log(this.shapes.box_1.arrays.texture_coord)
+        this.shapes.box_2.arrays.texture_coord = this.shapes.box_2.arrays.texture_coord.map(x => x.times(2));
+        this.isRotating = false;
 
 
         // TODO:  Create the materials required to texture both cubes with the correct images and settings.
@@ -41,7 +44,7 @@ export class Assignment4 extends Scene {
             world: new Material(new Textured_Phong(), {
                 color: hex_color("#000000"),
                 ambient: 1,
-                texture: new Texture("assets/earth.gif", "NEAREST")
+                texture: new Texture("assets/earth.gif", "LINEAR_MIPMAP_LINEAR")
             }),
         }
 
@@ -50,6 +53,8 @@ export class Assignment4 extends Scene {
 
     make_control_panel() {
         // TODO:  Implement requirement #5 using a key_triggered_button that responds to the 'c' key.
+        this.key_triggered_button("Cube Rotation", ["c"], () => 
+            this.isRotating = !this.isRotating);
     }
 
     display(context, program_state) {
@@ -70,11 +75,18 @@ export class Assignment4 extends Scene {
 
         // TODO:  Draw the required boxes. Also update their stored matrices.
         // You can remove the folloeing line.
-        let box1_transform = model_transform.times(Mat4.scale(2,2,2));
-        this.shapes.box_1.draw(context, program_state, box1_transform, this.materials.stars);
+        
+        let box1_transform = model_transform.times(Mat4.translation(-2,0,0));
 
-        let box2_transform = model_transform.times(Mat4.scale(2,2,2)).times(Mat4.translation(3,0,0));
-        this.shapes.box_2.draw(context, program_state, box2_transform, this.materials.world);
+        let box2_transform = model_transform.times(Mat4.translation(2,0,0));
+        if (this.isRotating) {
+            // box 1
+            let box1rot = Math.PI/2 * t;
+            box1_transform = box1_transform.times(Mat4.rotation(box1rot,1,0,0));
+    
+           }
+         this.shapes.box_1.draw(context, program_state, box1_transform, this.materials.stars);
+         this.shapes.box_2.draw(context, program_state, box2_transform, this.materials.world);
     }
 }
 
