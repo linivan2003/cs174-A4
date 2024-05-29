@@ -36,12 +36,12 @@ export class Assignment4 extends Scene {
             phong: new Material(new Textured_Phong(), {
                 color: hex_color("#ffffff"),
             }),
-            stars: new Material(new Textured_Phong(), {
+            stars: new Material(new Texture_Rotate(), {
                 color: hex_color("#000000"),
                 ambient: 1,
                 texture: new Texture("assets/stars.png", "NEAREST")
             }),
-            world: new Material(new Textured_Phong(), {
+            world: new Material(new Texture_Scroll_X(), {
                 color: hex_color("#000000"),
                 ambient: 1,
                 texture: new Texture("assets/earth.gif", "LINEAR_MIPMAP_LINEAR")
@@ -98,12 +98,44 @@ class Texture_Scroll_X extends Textured_Phong {
             uniform float animation_time;
             
             void main(){
-                // Sample the texture image in the correct place:
-                vec4 tex_color = texture2D( texture, f_tex_coord);
+
+                float slide_value = mod(animation_time,4.0) * 4.0;; 
+               
+                mat4 slide_matrix = mat4(vec4(-1.0, 0.0, 0., 0.), 
+                                   vec4( 0.0, 1.0, 0.0, 0.0), 
+                                   vec4( 0.0, 0.0, 1.0, 0.0), 
+                                   vec4(slide_value, 0.0, 0.0, 1.0)); 
+
+                vec4 new_tex_coord = vec4(f_tex_coord, 0, 0) + vec4(1.0, 1.0, 0.0, 1.0); 
+                new_tex_coord = slide_matrix * new_tex_coord; 
+
+                vec4 tex_color = texture2D(texture, new_tex_coord.xy);
+
+                 float u = mod(new_tex_coord.x, 1.0);
+                 float v = mod(new_tex_coord.y, 1.0);
+
+
+                //black square 
+                // right 
+                if (u > 0.75 && u < 0.85 && v > 0.15 && v < 0.85) {
+                    tex_color = vec4(0, 0, 0, 1.0);
+                }
+                // left 
+                 if (u > 0.15 && u < 0.25 && v > 0.15 && v < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // bottom 
+                 if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // top 
+                 if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+
+
                 if( tex_color.w < .01 ) discard;
-                                                                         // Compute an initial (ambient) color:
                 gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
-                                                                         // Compute the final color with contributions from lights:
                 gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
         } `;
     }
@@ -118,12 +150,44 @@ class Texture_Rotate extends Textured_Phong {
             uniform sampler2D texture;
             uniform float animation_time;
             void main(){
-                // Sample the texture image in the correct place:
-                vec4 tex_color = texture2D( texture, f_tex_coord );
+                     
+                    // 8 rpm  = 4/15 * PI rad * seconds = .266667 * pi * time
+                    float rotation_angle = .266667 * 3.14159265 * mod(animation_time, 7.5); 
+                    mat4 rotation_matrix = 
+                                    mat4(vec4(cos(rotation_angle), sin(rotation_angle), 0.0, 0.0), 
+                                    vec4(sin(rotation_angle), -cos(rotation_angle), 0.0, 0.0), 
+                                    vec4( 0.0, 0.0, 1.0, 0.0), 
+                                    vec4( 0.0, 0.0, 0.0, 1.0));
+
+                vec4 new_tex_coord = vec4(f_tex_coord, 0, 0) + vec4(-0.5, -0.5, 0.0, 0.0);
+                new_tex_coord = (rotation_matrix * new_tex_coord) + vec4(0.5, 0.5, 0.0, 0.0); 
+                       
+                vec4 tex_color = texture2D(texture, new_tex_coord.xy);
+                
+                //black outlines
+                 float u = mod(new_tex_coord.x, 1.0);
+                 float v = mod(new_tex_coord.y, 1.0);
+
+
+                // right 
+                if (v > 0.15 && v < 0.85 && u > 0.75 && u < 0.85) {
+                    tex_color = vec4(0, 0, 0, 1.0);
+                } 
+                // left 
+                 if (v > 0.15 && v < 0.85 && u > 0.15 && u < 0.25) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                 // top 
+                 if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // bottom 
+                 if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+
                 if( tex_color.w < .01 ) discard;
-                                                                         // Compute an initial (ambient) color:
                 gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
-                                                                         // Compute the final color with contributions from lights:
                 gl_FragColor.xyz += phong_model_lights( normalize( N ), vertex_worldspace );
         } `;
     }
